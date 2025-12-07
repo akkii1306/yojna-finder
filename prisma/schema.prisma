@@ -32,18 +32,18 @@ model UserProfile {
   // Personal Information
   age        Int?
   gender     String?
-  category   String?   // SC, ST, OBC, General
+  category   String?   // SC / ST / OBC / General
   disability Boolean?
 
-  // Location Details
+  // Location
   state      String?
   district   String?
-  ruralUrban String?   // (optional) Rural / Urban
+  ruralUrban String?   // Optional
 
   // Socio-economic
   income     Int?
   occupation String?
-  education  String?   // Student / Graduate / Farmer / Other
+  education  String?   // Student / Farmer / Graduate / Other
 
   createdAt  DateTime  @default(now())
 }
@@ -84,4 +84,47 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+//
+// ====================== YOJANA & ELIGIBILITY MODELS ======================
+//
+
+model Yojana {
+  id          String            @id @default(cuid())
+  title       String
+  description String
+  category    String
+  state       String?           // null = National Scheme
+  link        String
+  createdAt   DateTime          @default(now())
+
+  eligibilityRules EligibilityRule[]
+  requiredDocuments RequiredDocument[]
+}
+
+model EligibilityRule {
+  id         String    @id @default(cuid())
+  yojanaId   String
+
+  // Eligibility Conditions
+  minAge     Int?
+  maxAge     Int?
+  gender     String?
+  maxIncome  Int?
+  category   String?
+  state      String?
+  occupation String?
+  disability Boolean?
+
+  yojana     Yojana   @relation(fields: [yojanaId], references: [id])
+}
+
+model RequiredDocument {
+  id          String   @id @default(cuid())
+  yojanaId    String
+  name        String
+  description String?
+
+  yojana      Yojana   @relation(fields: [yojanaId], references: [id])
 }
