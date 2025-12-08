@@ -21,6 +21,14 @@ export async function GET() {
 
   const p = user.profile;
 
+  // SAFE PROFILE (Fixes all TS errors)
+  const safeProfile = {
+    ...p,
+    age: p.age ?? 0,
+    income: p.income ?? 0,
+    disability: p.disability ?? false,
+  };
+
   const yojanas = await prisma.yojana.findMany({
     include: {
       eligibilityRules: true,
@@ -28,38 +36,33 @@ export async function GET() {
     },
   });
 
-const eligible = yojanas.filter((y) => {
-  const r = y.eligibilityRules[0];
-  if (!r) return false;
+  const eligible = yojanas.filter((y) => {
+    const r = y.eligibilityRules[0];
+    if (!r) return false;
 
-  // SAFE NON-NULL VALUES (fixes TypeScript)
-  const age = p.age ?? 0;
-  const income = p.income ?? 0;
-  const disability = p.disability ?? false;
+    const age = p.age ?? 0;
+    const income = p.income ?? 0;
+    const disability = p.disability ?? false;
 
-  if (r.minAge && age < r.minAge) return false;
-  if (r.maxAge && age > r.maxAge) return false;
+    if (r.minAge && age < r.minAge) return false;
+    if (r.maxAge && age > r.maxAge) return false;
 
-  if (r.gender && r.gender.toLowerCase() !== p.gender?.toLowerCase()) {
-    return false;
-  }
+    if (r.gender && r.gender.toLowerCase() !== p.gender?.toLowerCase())
+      return false;
 
-  if (r.maxIncome && income > r.maxIncome) return false;
+    if (r.maxIncome && income > r.maxIncome) return false;
 
-  if (r.category && r.category.toLowerCase() !== p.category?.toLowerCase()) {
-    return false;
-  }
+    if (r.category && r.category.toLowerCase() !== p.category?.toLowerCase())
+      return false;
 
-  if (r.state && r.state !== p.state) return false;
+    if (r.state && r.state !== p.state) return false;
 
-  if (r.occupation && r.occupation !== p.occupation) return false;
+    if (r.occupation && r.occupation !== p.occupation) return false;
 
-  if (r.disability !== null && r.disability !== disability) return false;
+    if (r.disability !== null && r.disability !== disability) return false;
 
-  return true;
-});
-
-
+    return true;
+  });
 
   if (eligible.length === 0) {
     return NextResponse.json({ ai: [] });
@@ -67,7 +70,7 @@ const eligible = yojanas.filter((y) => {
 
   const prompt = `
   A citizen has the following profile:
-  ${JSON.stringify(p, null, 2)}
+  ${JSON.stringify(safeProfile, null, 2)}
 
   These are the government schemes they are eligible for:
   ${JSON.stringify(eligible, null, 2)}
@@ -89,7 +92,6 @@ const eligible = yojanas.filter((y) => {
   ]
   `;
 
-  // REAL GEMINI CALL
   const response = await fetch(
     "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=" +
       process.env.GEMINI_API_KEY,
@@ -105,7 +107,7 @@ const eligible = yojanas.filter((y) => {
 
   const output = json.candidates?.[0]?.content?.parts?.[0]?.text;
 
-  let parsed = [];
+  let parsed: any[] = [];
   try {
     parsed = JSON.parse(output);
   } catch {
