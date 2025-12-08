@@ -32,7 +32,7 @@ const eligible = yojanas.filter((y) => {
   const r = y.eligibilityRules[0];
   if (!r) return false;
 
-  // SAFE NON-NULL VALUES
+  // SAFE NON-NULL VALUES (fixes TypeScript)
   const age = p.age ?? 0;
   const income = p.income ?? 0;
   const disability = p.disability ?? false;
@@ -40,13 +40,15 @@ const eligible = yojanas.filter((y) => {
   if (r.minAge && age < r.minAge) return false;
   if (r.maxAge && age > r.maxAge) return false;
 
-  if (r.gender && r.gender.toLowerCase() !== p.gender?.toLowerCase())
+  if (r.gender && r.gender.toLowerCase() !== p.gender?.toLowerCase()) {
     return false;
+  }
 
   if (r.maxIncome && income > r.maxIncome) return false;
 
-  if (r.category && r.category.toLowerCase() !== p.category?.toLowerCase())
+  if (r.category && r.category.toLowerCase() !== p.category?.toLowerCase()) {
     return false;
+  }
 
   if (r.state && r.state !== p.state) return false;
 
@@ -56,6 +58,7 @@ const eligible = yojanas.filter((y) => {
 
   return true;
 });
+
 
 
   if (eligible.length === 0) {
