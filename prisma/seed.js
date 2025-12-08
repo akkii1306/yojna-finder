@@ -1,6 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma.js";
 
-const prisma = new PrismaClient();
 
 async function main() {
   await prisma.yojana.create({
@@ -10,6 +9,7 @@ async function main() {
       category: "Agriculture",
       state: null,
       link: "https://pmkisan.gov.in",
+
       eligibilityRules: {
         create: {
           minAge: 18,
@@ -17,11 +17,12 @@ async function main() {
           maxIncome: 200000,
         },
       },
+
       requiredDocuments: {
         create: [
-          { name: "Aadhar Card" },
-          { name: "Land Ownership Proof" },
-          { name: "Bank Account Details" },
+          { name: "Aadhar Card", description: "Valid Aadhaar linked with bank" },
+          { name: "Land Ownership Proof", description: "Khasra/Khatauni or similar" },
+          { name: "Bank Account Details", description: "Passbook or cancelled cheque" },
         ],
       },
     },
@@ -31,9 +32,10 @@ async function main() {
 }
 
 main()
-  .then(() => prisma.$disconnect())
   .catch((e) => {
-    console.error(e);
-    prisma.$disconnect();
+    console.error("Seed error:", e);
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });

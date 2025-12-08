@@ -7,21 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//
-// ====================== USER MODELS ======================
-//
-
 model User {
-  id        String        @id @default(cuid())
+  id        String       @id @default(cuid())
   name      String?
-  email     String?       @unique
-  password  String?       // null for Google OAuth users
-  image     String?
-  createdAt DateTime      @default(now())
+  email     String       @unique
+  password  String
+  createdAt DateTime     @default(now())
 
+  profile   UserProfile?
   accounts  Account[]
   sessions  Session[]
-  profile   UserProfile?
 }
 
 model UserProfile {
@@ -29,28 +24,58 @@ model UserProfile {
   userId     String   @unique
   user       User     @relation(fields: [userId], references: [id])
 
-  // Personal Information
   age        Int?
   gender     String?
-  category   String?   // SC / ST / OBC / General
-  disability Boolean?
-
-  // Location
   state      String?
   district   String?
-  ruralUrban String?   // Optional
-
-  // Socio-economic
   income     Int?
+  category   String?
   occupation String?
-  education  String?   // Student / Farmer / Graduate / Other
+  disability Boolean?
 
-  createdAt  DateTime  @default(now())
+  // if you added these, keep them:
+  education  String?
+  ruralUrban String?
+
+  createdAt  DateTime @default(now())
 }
 
-//
-// ====================== NEXTAUTH MODELS ======================
-//
+model Yojana {
+  id          String             @id @default(cuid())
+  title       String
+  description String
+  category    String
+  state       String?            // null = national
+  link        String
+  createdAt   DateTime           @default(now())
+
+  eligibilityRules  EligibilityRule[]
+  requiredDocuments RequiredDocument[]
+}
+
+model EligibilityRule {
+  id         String   @id @default(cuid())
+  yojanaId   String
+  minAge     Int?
+  maxAge     Int?
+  gender     String?
+  maxIncome  Int?
+  category   String?
+  state      String?
+  occupation String?
+  disability Boolean?
+
+  yojana     Yojana  @relation(fields: [yojanaId], references: [id])
+}
+
+model RequiredDocument {
+  id          String   @id @default(cuid())
+  yojanaId    String
+  name        String
+  description String?
+
+  yojana      Yojana   @relation(fields: [yojanaId], references: [id])
+}
 
 model Account {
   id                String  @id @default(cuid())
@@ -65,7 +90,8 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  user              User     @relation(fields: [userId], references: [id])
+
+  user              User    @relation(fields: [userId], references: [id])
 
   @@unique([provider, providerAccountId])
 }
@@ -75,56 +101,14 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+
   user         User     @relation(fields: [userId], references: [id])
 }
 
 model VerificationToken {
   identifier String
-  token      String  @unique
+  token      String   @unique
   expires    DateTime
 
   @@unique([identifier, token])
-}
-
-//
-// ====================== YOJANA & ELIGIBILITY MODELS ======================
-//
-
-model Yojana {
-  id          String            @id @default(cuid())
-  title       String
-  description String
-  category    String
-  state       String?           // null = National Scheme
-  link        String
-  createdAt   DateTime          @default(now())
-
-  eligibilityRules EligibilityRule[]
-  requiredDocuments RequiredDocument[]
-}
-
-model EligibilityRule {
-  id         String    @id @default(cuid())
-  yojanaId   String
-
-  // Eligibility Conditions
-  minAge     Int?
-  maxAge     Int?
-  gender     String?
-  maxIncome  Int?
-  category   String?
-  state      String?
-  occupation String?
-  disability Boolean?
-
-  yojana     Yojana   @relation(fields: [yojanaId], references: [id])
-}
-
-model RequiredDocument {
-  id          String   @id @default(cuid())
-  yojanaId    String
-  name        String
-  description String?
-
-  yojana      Yojana   @relation(fields: [yojanaId], references: [id])
 }

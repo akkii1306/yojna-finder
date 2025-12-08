@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "@/components/SessionWrapper";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import AuthNav from "@/components/AuthNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,27 +29,36 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="bg-gray-50 min-h-screen">
-        {/* Wrap ONLY inside the body with SessionWrapper */}
         <SessionWrapper>
-          <nav className="w-full bg-white shadow-md py-4 px-6 flex items-center justify-between">
-            <h1 className="text-xl font-bold">Yojana Finder 2.0</h1>
+          <nav className="w-full bg-white border-b shadow-sm">
+            <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+              
+              {/* LOGO */}
+              <Link href="/" className="text-2xl font-bold text-blue-600">
+                Yojana Finder 2.0
+              </Link>
 
-            <div className="flex gap-6 text-sm font-medium">
-              <a href="/" className="hover:text-blue-600">
-                Home
-              </a>
-              <a href="/login" className="hover:text-blue-600">
-                Login
-              </a>
-              <a href="/register" className="hover:text-blue-600">
-                Register
-              </a>
-              <a href="/dashboard" className="hover:text-blue-600">
-                Dashboard
-              </a>
+              {/* NAV LINKS */}
+              <div className="flex items-center gap-6 text-sm font-medium">
+                <Link href="/" className="hover:text-blue-600">
+                  Home
+                </Link>
+
+                <Link href="/yojanas" className="hover:text-blue-600">
+                  Yojanas
+                </Link>
+
+                <Link href="/dashboard" className="hover:text-blue-600">
+                  Dashboard
+                </Link>
+
+                {/* AUTH BUTTONS (Login/Register OR Logout) */}
+                <AuthNav />
+              </div>
             </div>
           </nav>
 
+          {/* MAIN CONTENT */}
           <main className="pt-6">{children}</main>
         </SessionWrapper>
       </body>
