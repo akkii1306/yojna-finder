@@ -28,21 +28,35 @@ export async function GET() {
     },
   });
 
-  const eligible = yojanas.filter((y) => {
-    const r = y.eligibilityRules[0];
-    if (!r) return false;
+const eligible = yojanas.filter((y) => {
+  const r = y.eligibilityRules[0];
+  if (!r) return false;
 
-    if (r.minAge && p.age < r.minAge) return false;
-    if (r.maxAge && p.age > r.maxAge) return false;
-    if (r.gender && r.gender !== p.gender) return false;
-    if (r.maxIncome && p.income > r.maxIncome) return false;
-    if (r.category && r.category !== p.category) return false;
-    if (r.state && r.state !== p.state) return false;
-    if (r.occupation && r.occupation !== p.occupation) return false;
-    if (r.disability != null && r.disability !== p.disability) return false;
+  // SAFE NON-NULL VALUES
+  const age = p.age ?? 0;
+  const income = p.income ?? 0;
+  const disability = p.disability ?? false;
 
-    return true;
-  });
+  if (r.minAge && age < r.minAge) return false;
+  if (r.maxAge && age > r.maxAge) return false;
+
+  if (r.gender && r.gender.toLowerCase() !== p.gender?.toLowerCase())
+    return false;
+
+  if (r.maxIncome && income > r.maxIncome) return false;
+
+  if (r.category && r.category.toLowerCase() !== p.category?.toLowerCase())
+    return false;
+
+  if (r.state && r.state !== p.state) return false;
+
+  if (r.occupation && r.occupation !== p.occupation) return false;
+
+  if (r.disability !== null && r.disability !== disability) return false;
+
+  return true;
+});
+
 
   if (eligible.length === 0) {
     return NextResponse.json({ ai: [] });
